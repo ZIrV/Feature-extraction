@@ -2,7 +2,7 @@ import numpy as np
 import scipy.optimize
 
 # input t*d matrix and parameter lambda_0, output d*d transition matrix
-def VAR(input,lambda_0):
+def VAR_v2(input,lambda_0):
 
     events_length = input.shape[0]
     dimension = input.shape[1]
@@ -22,22 +22,21 @@ def VAR(input,lambda_0):
     S = sum/events_length
     S1 = sum1/(events_length-1)
 
-    A_transition = np.zeros((dimension,dimension))
-    for j in range(dimension):
+    c = np.ones((1,2*dimension*dimension))
 
-        lambda_0 = lambda_0
+    B_ub = np.append(S1,-S1,axis=0)
+    B_ub = B_ub.T
+    B_ub = B_ub.reshape(-1,1)
+    B_ub = B_ub + lambda_0
+    print(B_ub)
 
-        c = np.ones((1,2*dimension))
+    A_ub0 = np.append( np.append(S,-S,axis=1), np.append(-S,S,axis=1),axis=0 )
+    A_ub = A_ub0
+    for i in range(dimension-1):
+        A_ub = np.append(A_ub,A_ub0,axis = 1)
+    print(A_ub)
 
-        A_ub = np.append( np.append(S,-S,axis=1), np.append(-S,S,axis=1),axis=0 )
+    res = scipy.optimize.linprog(c,A_ub,B_ub)
 
-        B_ub = np.append( S1[:,j].reshape(dimension,1) + lambda_0 * np.ones((dimension,1)), - S1[:,j].reshape(dimension,1) + lambda_0*np.ones((dimension,1)),axis=0 )
-
-        res = scipy.optimize.linprog(c,A_ub,B_ub)
-
-        x = res.x.reshape(2,dimension)
-        x = x[0]-x[1]
-
-        A_transition[:,j] = x
 
     return A_transition
