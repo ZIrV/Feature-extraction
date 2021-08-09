@@ -34,8 +34,9 @@ def VAR(input,lambda_0):
         B_ub = np.append( S1[:,j].reshape(dimension,1) + lambda_0 * np.ones((dimension,1)), - S1[:,j].reshape(dimension,1) + lambda_0*np.ones((dimension,1)),axis=0 )
 
         res = scipy.optimize.linprog(c,A_ub,B_ub)
-
+ 
         x = res.x.reshape(2,dimension)
+
         x = x[0]-x[1]
 
         A_transition[:,j] = x

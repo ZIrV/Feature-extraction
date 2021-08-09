@@ -2,6 +2,9 @@ import pickle
 import time
 from VAR import *
 
+import warnings
+warnings.filterwarnings("ignore")
+
 prev_time = time.time()
 f=open('../../data_so-20210704T114021Z-001/data_so/fold1/train.pkl','rb')#文件所在路径
 pkl=pickle.load(f,encoding='latin1')#读取pkl内容
@@ -13,13 +16,18 @@ print("read file:",curr_time-prev_time,"s")
 prev_time = curr_time
 
 input = []
-for j in data[0:9]:
+for j in data[0:5]:
     input_row = []
-    for i in j[0:43]:
-        input_row.append(i['time_since_start'])
-    input_row = np.sort(input_row)
+    if len(j) < 15:
+        for i in range(15 - len(j)):
+            input_row.append(0)
+        for i in j:
+            input_row.append(i['time_since_start'])
+    else:
+        for i in j[0:15]:
+            input_row.append(i['time_since_start'])
     input = np.append(input,input_row)
-input = input.reshape(43,9)
+input = input.reshape(15,5)
 curr_time = time.time()
 print("get input:",curr_time-prev_time,"s")
 prev_time = curr_time
@@ -47,28 +55,20 @@ curr_time = time.time()
 print("calculate paraments:",curr_time-prev_time,"s")
 prev_time = curr_time
 
+
+c = np.ones((1,2*dimension))
+
+A_ub = np.append( np.append(S,-S,axis=1), np.append(-S,S,axis=1),axis=0 )
+
 A_transition = np.zeros((dimension,dimension))
 for j in range(dimension):
 
-    lambda_0 = lambda_0
-
-    c = np.ones((1,2*dimension))
-
-    A_ub = np.append( np.append(S,-S,axis=1), np.append(-S,S,axis=1),axis=0 )
-
-    B_ub = np.append( S1[:,j].reshape(dimension,1) + lambda_0*np.ones((dimension,1)), - S1[:,j].reshape(dimension,1) + lambda_0*np.ones((dimension,1)),axis=0 )
-
-    curr_time = time.time()
-    print("calculate paraments(as column):",curr_time-prev_time,"s")
-    prev_time = curr_time
+    B_ub = np.append( S1[:,j].reshape(dimension,1) + lambda_0 * np.ones((dimension,1)), - S1[:,j].reshape(dimension,1) + lambda_0*np.ones((dimension,1)),axis=0 )
 
     res = scipy.optimize.linprog(c,A_ub,B_ub)
 
-    curr_time = time.time()
-    print("linear programming:",curr_time-prev_time,"s")
-    prev_time = curr_time
-
     x = res.x.reshape(2,dimension)
+
     x = x[0]-x[1]
 
     A_transition[:,j] = x
@@ -76,3 +76,5 @@ for j in range(dimension):
 curr_time = time.time()
 print("get result:",curr_time-prev_time,"s")
 prev_time = curr_time
+
+print(A_transition)
