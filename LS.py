@@ -58,3 +58,20 @@ print(input)
 print(Y)
 Y_bar = Y.sum(axis=0)/m
 print(Y_bar)
+Y_diff = Y - Y_bar
+Y_diff_T = Y_diff.T
+sum_Y = np.dot(Y_diff,Y_diff.T)
+
+for kh in range(m-1): 
+    k = kh + 1
+    sum_lower_gamma = np.zeros(k)
+    sum_upper_gamma = np.zeros((k,k))
+    for th in range(m-k):
+        t = th + k
+        sum_lower_gamma += sum_Y[t,th:t]
+        sum_upper_gamma += sum_Y[th:t,th:t]
+    lower_gamma = sum_lower_gamma/(m-k)
+    upper_gamma = sum_upper_gamma/(m-k)
+    upper_gamma = np.mat(upper_gamma)
+    theta = np.dot(lower_gamma,upper_gamma.I)
+    print(k,":",theta)
