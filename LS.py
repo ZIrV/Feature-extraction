@@ -1,5 +1,6 @@
 import pickle
 import time
+import mpmath
 from VAR import *
 
 import warnings
@@ -33,7 +34,7 @@ curr_time = time.time()
 print("get input:",curr_time-prev_time,"s")
 prev_time = curr_time
 
-print(input)
+# print(input)
 
 events_length = input.shape[0]
 dimension = input.shape[1]
@@ -54,8 +55,8 @@ for idx,i in enumerate(input):
         j = int(j)
         Y[j][jdx] = 1
 
-print(input)
-print(Y)
+# print(input)
+# print(Y)
 Y_bar = Y.sum(axis=0)/m
 print(Y_bar)
 Y_diff = Y - Y_bar
@@ -72,6 +73,18 @@ for kh in range(m-1):
         sum_upper_gamma += sum_Y[th:t,th:t]
     lower_gamma = sum_lower_gamma/(m-k)
     upper_gamma = sum_upper_gamma/(m-k)
+    lower_gamma = np.flip(lower_gamma)
+    upper_gamma = np.rot90(upper_gamma,2)
     upper_gamma = np.mat(upper_gamma)
-    theta = np.dot(lower_gamma,upper_gamma.I)
-    print(k,":",theta)
+    upper_gamma_pinv = np.linalg.pinv(upper_gamma)
+    theta = np.dot(lower_gamma,upper_gamma_pinv)
+    print(k,",theta:",theta) 
+    nu = Y_bar * ( 1 - np.sum(theta))
+    print(k,",nu:",nu)  
+    # print(k,":",np.dot(upper_gamma_pinv,upper_gamma))
+
+    # lower_gamma = mpmath.matrix(lower_gamma)
+    # upper_gamma = mpmath.matrix(upper_gamma)
+    # upper_gamma_pinv = upper_gamma**-1
+    # print(k,"----------")
+    # print(upper_gamma_pinv * upper_gamma)
